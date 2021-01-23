@@ -24,3 +24,18 @@ enum token_type
     INPUT, // ,
     OUTPUT // .
 };
+
+/*
+ * Context Free Grammer for Brainfuck :
+ * 
+ * TOP      ->      PROG
+ * PROG     ->      (LOOP | OPS) PROG || epsilon                                           // epsilon = empty production
+ * OPS      ->      (INCR | DECR | FWD | BKWD | INPUT | OUTPUT)
+ * LOOP     ->      LOP PROG LOPIF
+ * INCR     ->      '+'
+ * DECR     ->      '-'
+ * FWD      ->      '>'
+ * BKWD     ->      '<'
+ * INPUT    ->      ','
+ * OUTPUT   ->      '.'
+ */
