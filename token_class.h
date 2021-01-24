@@ -8,7 +8,8 @@ private:
     token_type type;
 
 public:
-   token_class(char value, token_type type);
+    token_class(char value, token_type type);
+    token_class();
 
     char get_value();
     token_type get_type();

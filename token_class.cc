@@ -1,6 +1,9 @@
 #include "token_class.h"
 #include "bfspec.h"
 
+token_class::token_class()
+{
+}
 token_class ::token_class(char value, token_type type)
 {
     this->value = value;
