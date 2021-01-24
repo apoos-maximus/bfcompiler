@@ -41,3 +41,17 @@ enum token_type
  * LOP      ->      '['
  * LOPIF    ->      ']'
  */
+
+/*
+ * Reduced Brainfuck Grammer :
+ * 
+ * TOP      ->      PROG
+ * PROG     ->      [ PROG ] PROG |
+ *          ->      + PROG
+ *          ->      - PROG
+ *          ->      > PROG
+ *          ->      < PROG
+ *          ->      , PROG
+ *          ->      . PROG
+ *          ->      epsilon                                                                // epsilon = empty production                         
+ */
