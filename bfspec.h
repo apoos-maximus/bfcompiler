@@ -38,4 +38,6 @@ enum token_type
  * BKWD     ->      '<'
  * INPUT    ->      ','
  * OUTPUT   ->      '.'
+ * LOP      ->      '['
+ * LOPIF    ->      ']'
  */
