@@ -2,6 +2,7 @@
 #include <fstream>
 #include "token_class.h"
 #include "bflexer.h"
+#include "bfparser.h"
 
 int main(int argc, char *argv[])
 {
@@ -17,10 +18,20 @@ int main(int argc, char *argv[])
     bflexer lexer = bflexer(cnt);
     lexer.lexit();
     vector<token_class> sanitised = lexer.get_tokenized_stream();
-    for (vector<token_class>::iterator iter = sanitised.begin(); iter != sanitised.end(); iter++)
+    sanitised.push_back(token_class(characterset[END_SENTINAL], END_SENTINAL));
+    bfparser parser = bfparser(sanitised);
+
+    vector<token_class> a = parser.get_token_stream();
+    for (vector<token_class>::iterator iter = a.begin(); iter != a.end(); iter++)
     {
         cout << characterset[(*iter).get_type()];
     }
     cout << endl;
+    if(parser.parse()){
+        cout << "parse success !" << endl;
+    } else {
+        cout << "parse error !" << endl;
+    }
+    
     return 0;
 }

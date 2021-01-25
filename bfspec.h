@@ -11,18 +11,20 @@ const char characterset[] = {
     '[',
     ']',
     ',',
-    '.'};
+    '.',
+    '$'};
 
 enum token_type
 {
-    INCR,  // +
-    DECR,  // -
-    FWD,   // >
-    BKWD,  // <
-    LOP,   // [
-    LOPIF, // ]
-    INPUT, // ,
-    OUTPUT // .
+    INCR,        // +
+    DECR,        // -
+    FWD,         // >
+    BKWD,        // <
+    LOP,         // [
+    LOPIF,       // ]
+    INPUT,       // ,
+    OUTPUT,      // .
+    END_SENTINAL // $                                                                      //character denotes end of parsing
 };
 
 /*
