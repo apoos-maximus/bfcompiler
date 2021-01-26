@@ -17,7 +17,7 @@ bfparser::~bfparser()
 bool bfparser::parse()
 {
     curtok = next_token();
-    prog();
+    this->bfast = prog();
     if (curtok.get_type() == END_SENTINAL)
     {
         return true;
@@ -32,50 +32,59 @@ bool bfparser::parse()
     }
 }
 
-void bfparser::prog()
+progAST *bfparser::prog()
 {
+    progAST *retval = NULL;
     if ((curtok.get_type() == INCR) || (curtok.get_type() == DECR) || (curtok.get_type() == FWD) || (curtok.get_type() == BKWD) || (curtok.get_type() == INPUT) || (curtok.get_type() == OUTPUT))
     {
+        retval = new operatorAST(curtok.get_value());
         curtok = next_token();
-        prog();
-        return;
+        retval->set_next(prog());
+        return retval;
     }
     if (curtok.get_type() == LOP)
     {
-        loop();
-        return;
+        return loop();
     }
     if (curtok.get_type() == END_SENTINAL)
     {
-        return;
+        return NULL;
     }
-    return;
+    return NULL;
 }
 
-void bfparser::loop()
+progAST *bfparser::loop()
 {
+    progAST *retval = NULL;
     if (curtok.get_type() == LOP)
     {
         curtok = next_token();
-        prog();
+        retval = new loopAST(prog());
+
         if (curtok.get_type() == LOPIF)
         {
             curtok = next_token();
-            prog();
-            return;
+            retval->set_next(prog());
+            return retval;
         }
         else
         {
             cout << "missing ]" << endl;
             exit(0);
         }
-        return;
+        return NULL;
     }
+    return NULL;
 }
 
 vector<token_class> bfparser::get_token_stream()
 {
     return this->token_stream;
+}
+
+progAST *bfparser ::getAST()
+{
+    return this->bfast;
 }
 
 token_class bfparser::next_token()

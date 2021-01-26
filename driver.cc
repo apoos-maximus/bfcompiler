@@ -3,6 +3,7 @@
 #include "token_class.h"
 #include "bflexer.h"
 #include "bfparser.h"
+#include "bfnode.h"
 
 int main(int argc, char *argv[])
 {
@@ -27,11 +28,19 @@ int main(int argc, char *argv[])
         cout << characterset[(*iter).get_type()];
     }
     cout << endl;
-    if(parser.parse()){
+    if (parser.parse())
+    {
         cout << "parse success !" << endl;
-    } else {
-        cout << "parse error !" << endl;
     }
-    
+    else
+    {
+        cout << "parse error !" << endl;
+        exit(-1);
+    }
+
+    progAST *tr = parser.getAST();
+    tr->print();
+    cout << endl;
+
     return 0;
 }
