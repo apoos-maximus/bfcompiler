@@ -81,7 +81,7 @@ void IRgenerator :: emit_while_end(WhileBlock* while_block) {
 }
 
 void IRgenerator ::codegen_prime(llvm ::Value *ptr, llvm::Function* mainFunc, progAST* treeptr){
-    int while_index = 0;
+  static int while_index = 0;
   WhileBlock while_blocks[1000];
   WhileBlock* while_block_ptr = while_blocks;
   char c;
