@@ -19,10 +19,6 @@ struct WhileBlock {
   llvm::BasicBlock* end_block;
 };
 
-static llvm::LLVMContext TheContext;
-static llvm::IRBuilder<> Builder(TheContext);
-static std::unique_ptr<llvm::Module> TheModule;
-
 class IRgenerator {
     
 

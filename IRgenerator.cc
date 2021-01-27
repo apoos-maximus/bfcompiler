@@ -1,5 +1,9 @@
 #include "IRgenerator.h"
 
+static llvm::LLVMContext TheContext;
+static llvm::IRBuilder<> Builder(TheContext);
+static std::unique_ptr<llvm::Module> TheModule;
+
 IRgenerator ::IRgenerator(progAST *bfast)
 {
     this->AST = bfast;
