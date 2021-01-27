@@ -1,7 +1,7 @@
 all: bfcompiler
 
 bfcompiler: token_class.o  bflexer.o bfparser.o bfnode.o IRgenerator.o driver.o
-	clang++ -std=c++14 -o bfcompiler -mlinker-version=609.8 token_class.o driver.o bflexer.o bfparser.o bfnode.o IRgenerator.o
+	clang++ -std=c++14 -o bfcompiler token_class.o driver.o bflexer.o bfparser.o bfnode.o IRgenerator.o
 
 token_class.o: token_class.cc token_class.h bfspec.h
 	clang++  -std=c++14 -c token_class.cc
