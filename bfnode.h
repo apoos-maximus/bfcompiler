@@ -11,6 +11,7 @@ public:
     progAST *get_next();
     virtual ~progAST();
     virtual void print();
+    char virtual get_value()=0; 
 };
 
 // operatorAST
@@ -33,4 +34,5 @@ public:
     loopAST(progAST *internal);
     progAST *get_loop_content();
     void print();
+    char get_value();
 };

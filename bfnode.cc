@@ -61,3 +61,8 @@ void loopAST::print()
     else
         return;
 }
+
+char loopAST ::get_value()
+{
+    return '[';
+}

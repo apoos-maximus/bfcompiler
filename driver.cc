@@ -4,6 +4,7 @@
 #include "bflexer.h"
 #include "bfparser.h"
 #include "bfnode.h"
+#include "IRgenerator.h"
 
 int main(int argc, char *argv[])
 {
@@ -41,6 +42,9 @@ int main(int argc, char *argv[])
     progAST *tr = parser.getAST();
     tr->print();
     cout << endl;
+
+    IRgenerator irg = IRgenerator(tr);
+    irg.codegen();
 
     return 0;
 }
