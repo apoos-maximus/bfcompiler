@@ -9,7 +9,12 @@ IRgenerator ::~IRgenerator()
 {
 }
 
-void emit_move_ptr(llvm::Value* ptr, int diff) {
+
+static llvm::LLVMContext TheContext;
+static llvm::IRBuilder<> Builder(TheContext);
+static std::unique_ptr<llvm::Module> TheModule;
+
+void IRgenerator :: emit_move_ptr(llvm::Value* ptr, int diff) {
   Builder.CreateStore(
       Builder.CreateInBoundsGEP(
         Builder.getInt8Ty(),
@@ -18,7 +23,7 @@ void emit_move_ptr(llvm::Value* ptr, int diff) {
       ptr);
 }
 
-void emit_add(llvm::Value* ptr, int diff) {
+void IRgenerator ::emit_add(llvm::Value* ptr, int diff) {
   llvm::Value* tmp = Builder.CreateLoad(ptr);
   Builder.CreateStore(
       Builder.CreateAdd(
@@ -27,7 +32,7 @@ void emit_add(llvm::Value* ptr, int diff) {
       tmp);
 }
 
-void emit_put(llvm::Value* ptr) {
+void IRgenerator :: emit_put(llvm::Value* ptr) {
   llvm::Function* funcPutChar = llvm::cast<llvm::Function>(
       TheModule->getOrInsertFunction("putchar",
         Builder.getInt32Ty(),
@@ -40,7 +45,7 @@ void emit_put(llvm::Value* ptr) {
         Builder.getInt32Ty()));
 }
 
-void emit_get(llvm::Value* ptr) {
+void IRgenerator :: emit_get(llvm::Value* ptr) {
   llvm::Function* funcGetChar = llvm::cast<llvm::Function>(
       TheModule->getOrInsertFunction("getchar",
         Builder.getInt32Ty(),
@@ -52,7 +57,7 @@ void emit_get(llvm::Value* ptr) {
       Builder.CreateLoad(ptr));
 }
 
-void emit_while_start(llvm::Function* func, llvm::Value* ptr, WhileBlock* while_block, int while_index) {
+void IRgenerator :: emit_while_start(llvm::Function* func, llvm::Value* ptr, WhileBlock* while_block, int while_index) {
   while_block->cond_block = llvm::BasicBlock::Create(
       TheContext, std::string("while_cond") + std::to_string(while_index), func);
   while_block->body_block = llvm::BasicBlock::Create(
@@ -70,7 +75,7 @@ void emit_while_start(llvm::Function* func, llvm::Value* ptr, WhileBlock* while_
   Builder.SetInsertPoint(while_block->body_block);
 }
 
-void emit_while_end(WhileBlock* while_block) {
+void IRgenerator :: emit_while_end(WhileBlock* while_block) {
   Builder.CreateBr(while_block->cond_block);
   Builder.SetInsertPoint(while_block->end_block);
 }
@@ -166,6 +171,5 @@ void IRgenerator ::codegen(){
   }
   pass.run(*TheModule);
   dest.flush();
-  std::cout << "Wrote " << Filename << "\n";
-  
+  std::cout << "Wrote " << Filename << "\n"; 
 }
