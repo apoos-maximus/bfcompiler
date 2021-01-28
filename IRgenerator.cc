@@ -66,85 +66,77 @@ void IRgenerator ::emit_get(llvm::Value *ptr)
       Builder.CreateLoad(ptr));
 }
 
-void IRgenerator ::emit_while_start(llvm::Function *func, llvm::Value *ptr, WhileBlock *while_block, int while_index)
+void IRgenerator ::emit_while(llvm::Function *func, llvm::Value *ptr, progAST *tr, WhileBlock *while_block, int while_index)
 {
-  while_block->cond_block = llvm::BasicBlock::Create(
-      TheContext, std::string("while_cond") + std::to_string(while_index), func);
-  while_block->body_block = llvm::BasicBlock::Create(
-      TheContext, std::string("while_body") + std::to_string(while_index), func);
-  while_block->end_block = llvm::BasicBlock::Create(
-      TheContext, std::string("while_end") + std::to_string(while_index), func);
-  Builder.CreateBr(while_block->cond_block);
-  Builder.SetInsertPoint(while_block->cond_block);
+  WhileBlock *wb = while_block;
+  int wi = while_index;
+  wb->cond_block = llvm::BasicBlock::Create(
+      TheContext, std::string("while_cond") + std::to_string(wi), func);
+  wb->body_block = llvm::BasicBlock::Create(
+      TheContext, std::string("while_body") + std::to_string(wi), func);
+  wb->end_block = llvm::BasicBlock::Create(
+      TheContext, std::string("while_end") + std::to_string(wi), func);
+  Builder.CreateBr(wb->cond_block);
+  Builder.SetInsertPoint(wb->cond_block);
   Builder.CreateCondBr(
       Builder.CreateICmpNE(
           Builder.CreateLoad(Builder.CreateLoad(ptr)),
           Builder.getInt8(0)),
-      while_block->body_block,
-      while_block->end_block);
-  Builder.SetInsertPoint(while_block->body_block);
+      wb->body_block,
+      wb->end_block);
+  Builder.SetInsertPoint(wb->body_block);
+  spit_code(func, ptr, tr->get_child());
+  Builder.CreateBr(wb->cond_block);
+  Builder.SetInsertPoint(wb->end_block);
+  return;
 }
 
-void IRgenerator ::emit_while_end(WhileBlock *while_block)
+void IRgenerator::spit_code(llvm ::Function *mainF, llvm ::Value *ptr, progAST *tr)
 {
-  Builder.CreateBr(while_block->cond_block);
-  Builder.SetInsertPoint(while_block->end_block);
-}
-
-void IRgenerator ::codegen_prime(llvm ::Value *ptr, llvm::Function *mainFunc, progAST *treeptr)
-{
-
-  char c;
-
-  progAST *tree_ptr = treeptr;
-
-  while (tree_ptr != NULL)
+  if (tr == NULL)
+    return;
+  if (tr->get_value() == '[')
   {
-    c = tree_ptr->get_value();
-    switch (c)
+    emit_while(mainF, ptr, tr, while_block_ptr++, while_index++);
+    spit_code(mainF, ptr, tr->get_next());
+  }
+  else
+  {
+    if (tr->get_value() == '+')
     {
-    case '>':
-      emit_move_ptr(ptr, 1);
-      tree_ptr = tree_ptr->get_next();
-      break;
-    case '<':
-      emit_move_ptr(ptr, -1);
-      tree_ptr = tree_ptr->get_next();
-      break;
-    case '+':
       emit_add(ptr, 1);
-      tree_ptr = tree_ptr->get_next();
-      break;
-    case '-':
+      spit_code(mainF, ptr, tr->get_next());
+    }
+    else if (tr->get_value() == '-')
+    {
       emit_add(ptr, -1);
-      tree_ptr = tree_ptr->get_next();
-      break;
-    case '[':
-      emit_while_start(mainFunc, ptr, while_block_ptr++, while_index++);
-      codegen_prime(ptr, mainFunc, tree_ptr->get_child());
-      emit_while_end(while_block_ptr);
-      tree_ptr = tree_ptr->get_next();
-      break;
-    case '.':
+      spit_code(mainF, ptr, tr->get_next());
+    }
+    else if (tr->get_value() == '>')
+    {
+      emit_move_ptr(ptr, 1);
+      spit_code(mainF, ptr, tr->get_next());
+    }
+    else if (tr->get_value() == '<')
+    {
+      emit_move_ptr(ptr, -1);
+      spit_code(mainF, ptr, tr->get_next());
+    }
+    else if (tr->get_value() == '.')
+    {
       emit_put(ptr);
-      tree_ptr = tree_ptr->get_next();
-      break;
-    case ',':
+      spit_code(mainF, ptr, tr->get_next());
+    }
+    else if (tr->get_value() == ',')
+    {
       emit_get(ptr);
-      tree_ptr = tree_ptr->get_next();
-      break;
+      spit_code(mainF, ptr, tr->get_next());
     }
   }
 }
 
-void IRgenerator ::codegen()
+llvm::Value *IRgenerator ::codegen_original(llvm ::Function *mainF)
 {
-  TheModule = make_unique<llvm::Module>("top", TheContext);
-  llvm::Function *mainFunc = llvm::Function::Create(
-      llvm::FunctionType::get(llvm::Type::getInt32Ty(TheContext), false),
-      llvm::Function::ExternalLinkage, "main", TheModule.get());
-  Builder.SetInsertPoint(llvm::BasicBlock::Create(TheContext, "", mainFunc));
-
   llvm::Value *data = Builder.CreateAlloca(Builder.getInt8PtrTy(), nullptr, "data");
   llvm::Value *ptr = Builder.CreateAlloca(Builder.getInt8PtrTy(), nullptr, "ptr");
   llvm::Function *funcCalloc = llvm::cast<llvm::Function>(
@@ -156,9 +148,8 @@ void IRgenerator ::codegen()
   llvm::Value *data_ptr = Builder.CreateCall(funcCalloc, {Builder.getInt64(30000), Builder.getInt64(1)});
   Builder.CreateStore(data_ptr, data);
   Builder.CreateStore(data_ptr, ptr);
-
-  progAST *tr = this->AST;
-  codegen_prime(ptr, mainFunc, tr);
+  progAST *tree = this->AST;
+  spit_code(mainF, ptr, tree);
 
   llvm::Function *funcFree = llvm::cast<llvm::Function>(
       TheModule->getOrInsertFunction("free",
@@ -167,48 +158,31 @@ void IRgenerator ::codegen()
                                      nullptr)
           .getCallee());
   Builder.CreateCall(funcFree, {Builder.CreateLoad(data)});
-
   Builder.CreateRet(Builder.getInt32(0));
-
-  llvm::InitializeAllTargetInfos();
-  llvm::InitializeAllTargets();
-  llvm::InitializeAllTargetMCs();
-  llvm::InitializeAllAsmParsers();
-  llvm::InitializeAllAsmPrinters();
-
-  std::string TargetTriple = llvm::sys::getDefaultTargetTriple();
-
-  std::string err;
-  const llvm::Target *Target = llvm::TargetRegistry::lookupTarget(TargetTriple, err);
-  if (!Target)
+  return NULL;
+}
+void IRgenerator ::codegen()
+{
+  TheModule = std::make_unique<llvm::Module>("bfcompiler", TheContext);
+  llvm::Function *mainF = TheModule->getFunction("main");
+  if (!mainF)
   {
-    std::cerr << "Failed to lookup target " + TargetTriple + ": " + err;
-    exit(1);
+    mainF = llvm ::Function ::Create(llvm::FunctionType::get(llvm::Type::getInt32Ty(TheContext), false),
+                                     llvm::Function::ExternalLinkage,
+                                     "main",
+                                     TheModule.get());
   }
+  llvm::BasicBlock *BB = llvm::BasicBlock::Create(TheContext, "entry", mainF);
+  Builder.SetInsertPoint(BB);
+  llvm ::Value *mainFBody = codegen_original(mainF);
+  Builder.CreateRet(mainFBody);
 
-  llvm::TargetOptions opt;
-  llvm::TargetMachine *TheTargetMachine = Target->createTargetMachine(
-      TargetTriple, "generic", "", opt, llvm::Optional<llvm::Reloc::Model>());
-
-  TheModule->setTargetTriple(TargetTriple);
-  TheModule->setDataLayout(TheTargetMachine->createDataLayout());
-
-  std::string Filename = "output.o";
-  std::error_code err_code;
-  llvm::raw_fd_ostream dest(Filename, err_code, llvm::sys::fs::F_None);
-  if (err_code)
+  if (mainF)
   {
-    std::cerr << "Could not open file: " << err_code.message();
-    exit(1);
+    if (llvm::verifyFunction(*mainF))
+    {
+      cout << "correct code !" << endl;
+      mainF->print(llvm::errs());
+    }
   }
-
-  llvm::legacy::PassManager pass;
-  if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, llvm::CGFT_ObjectFile))
-  {
-    std::cerr << "TheTargetMachine can't emit a file of this type\n";
-    exit(1);
-  }
-  pass.run(*TheModule);
-  dest.flush();
-  std::cout << "Wrote " << Filename << "\n";
 }

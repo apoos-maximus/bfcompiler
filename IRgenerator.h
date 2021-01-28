@@ -11,6 +11,8 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Verifier.h"
 
 struct WhileBlock
 {
@@ -27,13 +29,13 @@ public:
   IRgenerator(progAST *bfast);
   ~IRgenerator();
 
+  void spit_code(llvm::Function *mainF, llvm::Value *ptr, progAST *tr);
+  llvm::Value *codegen_original(llvm::Function *mainF);
   void codegen();
-  void codegen_prime(llvm::Value *ptr, llvm::Function *mainFunc, progAST *treeptr);
 
   void emit_move_ptr(llvm::Value *ptr, int diff);
   void emit_add(llvm::Value *ptr, int diff);
   void emit_put(llvm::Value *ptr);
   void emit_get(llvm::Value *ptr);
-  void emit_while_start(llvm::Function *func, llvm::Value *ptr, WhileBlock *while_block, int while_index);
-  void emit_while_end(WhileBlock *while_block);
+  void emit_while(llvm::Function *func, llvm::Value *ptr, progAST *tr, WhileBlock *while_block, int while_index);
 };
