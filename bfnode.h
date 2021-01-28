@@ -10,8 +10,9 @@ public:
     void set_next(progAST *nn);
     progAST *get_next();
     virtual ~progAST();
-    virtual void print();
-    char virtual get_value()=0; 
+    virtual void print() = 0;
+    char virtual get_value() = 0;
+    virtual progAST *get_child() = 0;
 };
 
 // operatorAST
@@ -23,6 +24,7 @@ public:
     operatorAST(char value);
     char get_value();
     void print();
+    virtual progAST *get_child();
 };
 
 // loopAST
@@ -35,4 +37,5 @@ public:
     progAST *get_loop_content();
     void print();
     char get_value();
+    virtual progAST *get_child();
 };

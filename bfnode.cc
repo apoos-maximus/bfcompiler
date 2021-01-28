@@ -5,11 +5,6 @@ progAST ::~progAST()
 {
 }
 
-void progAST ::print()
-{
-    cout << "lol";
-}
-
 void progAST ::set_next(progAST *nn)
 {
     this->next = nn;
@@ -39,6 +34,10 @@ void operatorAST ::print()
     else
         return;
 }
+progAST *operatorAST ::get_child()
+{
+    return NULL;
+}
 
 //loopAST
 loopAST ::loopAST(progAST *internal) : loop_content(internal)
@@ -60,6 +59,10 @@ void loopAST::print()
         this->next->print();
     else
         return;
+}
+progAST *loopAST ::get_child()
+{
+    return this->get_loop_content();
 }
 
 char loopAST ::get_value()
