@@ -23,12 +23,6 @@ int main(int argc, char *argv[])
     sanitised.push_back(token_class(characterset[END_SENTINAL], END_SENTINAL));
     bfparser parser = bfparser(sanitised);
 
-    vector<token_class> a = parser.get_token_stream();
-    for (vector<token_class>::iterator iter = a.begin(); iter != a.end(); iter++)
-    {
-        cout << characterset[(*iter).get_type()];
-    }
-    cout << endl;
     if (parser.parse())
     {
         cout << "parse success !" << endl;
@@ -40,8 +34,8 @@ int main(int argc, char *argv[])
     }
 
     progAST *tr = parser.getAST();
-    tr->print();
-    cout << endl;
+    // tr->print();
+    // cout << endl;
 
     IRgenerator irg = IRgenerator(tr);
     irg.codegen();
