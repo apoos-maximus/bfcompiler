@@ -5,7 +5,7 @@ LLVMFLAGS = `$$LLVM_HOME/bin/llvm-config --cxxflags --ldflags --libs --system-li
 all: bfcompiler
 
 bfcompiler: token_class.o  bflexer.o bfparser.o bfnode.o IRgenerator.o driver.o
-	${CCC} ${CCFLAGS} ${LLVMFLAGS} -mlinker-version=609.8 token_class.o driver.o bflexer.o bfparser.o bfnode.o IRgenerator.o -o bfcompiler
+	${CCC} ${CCFLAGS} ${LLVMFLAGS} token_class.o driver.o bflexer.o bfparser.o bfnode.o IRgenerator.o -o bfcompiler
 
 token_class.o: token_class.cc token_class.h bfspec.h
 	${CCC}  ${CCFLAGS} ${LLVMFLAGS} -c token_class.cc
@@ -27,4 +27,4 @@ driver.o: driver.cc token_class.h bflexer.h bfparser.h bfnode.h token_class.cc b
 
 .PHONY:	clean
 clean:
-	rm -f *.o *.gch bfcompiler
+	rm -f *.o *.gch bfcompiler a.out

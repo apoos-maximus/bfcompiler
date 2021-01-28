@@ -150,7 +150,6 @@ llvm::Value *IRgenerator ::codegen_original(llvm ::Function *mainF)
   Builder.CreateStore(data_ptr, ptr);
   progAST *tree = this->AST;
   spit_code(mainF, ptr, tree);
-
   llvm::Function *funcFree = llvm::cast<llvm::Function>(
       TheModule->getOrInsertFunction("free",
                                      Builder.getVoidTy(),
@@ -159,6 +158,10 @@ llvm::Value *IRgenerator ::codegen_original(llvm ::Function *mainF)
           .getCallee());
   Builder.CreateCall(funcFree, {Builder.CreateLoad(data)});
   Builder.CreateRet(Builder.getInt32(0));
+
+  // funcCalloc->print(llvm::errs());.
+  // funcFree->print(llvm::errs());s
+  mainF->print(llvm::errs());
 
   llvm::InitializeAllTargetInfos();
   llvm::InitializeAllTargets();
@@ -169,14 +172,15 @@ llvm::Value *IRgenerator ::codegen_original(llvm ::Function *mainF)
   std::string TargetTriple = llvm::sys::getDefaultTargetTriple();
 
   std::string err;
-  const llvm::Target* Target = llvm::TargetRegistry::lookupTarget(TargetTriple, err);
-  if (!Target) {
+  const llvm::Target *Target = llvm::TargetRegistry::lookupTarget(TargetTriple, err);
+  if (!Target)
+  {
     std::cerr << "Failed to lookup target " + TargetTriple + ": " + err;
     return NULL;
   }
 
   llvm::TargetOptions opt;
-  llvm::TargetMachine* TheTargetMachine = Target->createTargetMachine(
+  llvm::TargetMachine *TheTargetMachine = Target->createTargetMachine(
       TargetTriple, "generic", "", opt, llvm::Optional<llvm::Reloc::Model>());
 
   TheModule->setTargetTriple(TargetTriple);
@@ -185,21 +189,25 @@ llvm::Value *IRgenerator ::codegen_original(llvm ::Function *mainF)
   std::string Filename = "output.o";
   std::error_code err_code;
   llvm::raw_fd_ostream dest(Filename, err_code, llvm::sys::fs::F_None);
-  if (err_code) {
+  if (err_code)
+  {
     std::cerr << "Could not open file: " << err_code.message();
     return NULL;
   }
 
   llvm::legacy::PassManager pass;
-  if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr,llvm::CGFT_ObjectFile)) {
+  if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, llvm::CGFT_ObjectFile))
+  {
     std::cerr << "TheTargetMachine can't emit a file of this type\n";
     return NULL;
   }
+  
   pass.run(*TheModule);
   dest.flush();
   std::cout << "Wrote " << Filename << "\n";
   return NULL;
 }
+
 void IRgenerator ::codegen()
 {
   TheModule = std::make_unique<llvm::Module>("bfcompiler", TheContext);
@@ -215,11 +223,4 @@ void IRgenerator ::codegen()
   Builder.SetInsertPoint(BB);
   llvm ::Value *mainFBody = codegen_original(mainF);
   Builder.CreateRet(mainFBody);
-  // if (mainF)
-  // {
-  //   if (llvm::verifyFunction(*mainF))
-  //   {
-  //     TheModule->dump();
-  //   }
-  // }
 }
